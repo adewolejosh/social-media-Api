@@ -1,0 +1,6 @@
+accounts/migrations
+posts/migrations
+accounts/__pycache__/
+db.sqlite3
+posts/__pycache__/
+socialMediaApi/__pycache__/
