@@ -4,6 +4,7 @@ from rest_framework.status import *
 from rest_framework.permissions import IsAuthenticated
 
 from .serializers import *
+from .models import *
 
 
 # Create your views here.
@@ -24,6 +25,8 @@ class FollowUser(APIView):
 
     def post(self, request, user_id):
         try:
+            if not request.user:
+                raise User.DoesNotExist
             if request.user.id == user_id:
                 raise User.DoesNotExist
             follow = User.objects.get(id=user_id)
@@ -36,7 +39,7 @@ class FollowUser(APIView):
                 data.follow.add(follow)
                 data.save()
 
-            return Response({"message": "Followed!"}, status=HTTP_201_CREATED)
+                return Response({"message": "Followed!"}, status=HTTP_201_CREATED)
         except User.DoesNotExist:
             return Response({"message": "User does not exist or Not cyclic"}, status=HTTP_404_NOT_FOUND)
 
@@ -45,6 +48,8 @@ class UnFollowUser(APIView):
 
     def post(self, request, user_id):
         try:
+            if not request.user:
+                raise User.DoesNotExist
             if request.user.id == user_id:
                 raise User.DoesNotExist
             follow = User.objects.get(id=user_id)
@@ -53,7 +58,8 @@ class UnFollowUser(APIView):
                 if rel:
                     rel.delete()
                     return Response({"message": "Already UnFollowed!"}, status=HTTP_200_OK)
-            return Response({"message": "No Relationship exists!"}, status=HTTP_404_NOT_FOUND)
+                return Response({"message": "No Relationship exists!"}, status=HTTP_404_NOT_FOUND)
+
         except User.DoesNotExist:
             return Response({"message": "User does not exist or Not cyclic"}, status=HTTP_404_NOT_FOUND)
 

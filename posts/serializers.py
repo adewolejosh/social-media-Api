@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.utils.timezone import now
 from rest_framework import serializers
 
 from .models import Post, PostComment
@@ -20,16 +20,27 @@ class ReadPostsSerializer(serializers.ModelSerializer):
 
 
 class CreatePostSerializer(serializers.ModelSerializer):
-    owner = serializers.ReadOnlyField(source='user.username')
+    id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Post
+        fields = ['title', 'desc', 'id', 'created_at']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        instance = Post.objects.create(owner=user, **validated_data)
+        instance.save()
+        return instance
+
+
+class GetPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
         fields = '__all__'
 
-    def create(self, validated_data):
-        instance = Post.objects.create(**validated_data)
-        instance.save()
-        return instance
+    def get_post(self, **data):
+        pass
 
 
 class GetDeletePostSerializer(serializers.ModelSerializer):

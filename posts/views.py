@@ -1,4 +1,7 @@
+import json
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -28,8 +31,7 @@ class GetDeletePostView(APIView):
     def get(self, request, post_id):
         user = request.user
         post = Post.objects.filter(owner=user, id=post_id)
-        serializer = GetDeletePostSerializer(post)
-        serializer.is_valid(raise_exception=True)
+        return Response({"message": json.load(post)}, status=HTTP_200_OK)
 
     def delete(self, request, post_id):
         user = request.user
@@ -43,7 +45,10 @@ class CreatePostView(APIView):
     permissions = (IsAuthenticated,)
 
     def post(self, request):
-        serializer = CreatePostSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=HTTP_201_CREATED)
+        try:
+            serializer = CreatePostSerializer(data=request.data, context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=HTTP_201_CREATED)
+        except User.DoesNotExist:
+            return
