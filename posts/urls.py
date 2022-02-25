@@ -1,7 +1,9 @@
 
 from django.urls import path
-from .views import PostsView
+from .views import *
 
 urlpatterns = [
-    path('authenticate/', PostsView.as_view())
+    path('all_posts/', ReadAllPostsView.as_view()),
+    path('', CreatePostView.as_view()),
+    path('<int:id>', GetDeletePostView.as_view()),
 ]
