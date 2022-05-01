@@ -1,24 +1,27 @@
+
 from django.utils.timezone import now
 from rest_framework import serializers
 
 from .models import Post, PostComment
-from accounts.serializers import UserSerializer
 
 
 class PostCommentSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = PostComment
         fields = '__all__'
 
 
+# WORKS
 class ReadPostsSerializer(serializers.ModelSerializer):
-    comments = PostCommentSerializer(many=True, read_only=True)
+    post_comments = PostCommentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
-        fields = ['id', 'title', 'desc', 'created_at', 'comments']
+        fields = ['id', 'title', 'desc', 'created_at', 'post_comments']
 
 
+# WORKS
 class CreatePostSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
 
@@ -33,24 +36,15 @@ class CreatePostSerializer(serializers.ModelSerializer):
         return instance
 
 
-class GetPostSerializer(serializers.ModelSerializer):
+class CreateCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Post
-        fields = '__all__'
+        model = PostComment
+        fields = ['comment']
 
-    def get_post(self, **data):
-        pass
-
-
-class GetDeletePostSerializer(serializers.ModelSerializer):
-    owner = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Post
-        fields = '__all__'
-
-    def destroy(self, post_id):
-        instance = Post.objects.filter(id=post_id)
-        instance.delete()
-        return None
+    def create(self, validated_data):
+        owner = self.context['request'].user
+        post = self.context['post']
+        instance = PostComment.objects.create(owner=owner, posts=post, **validated_data)
+        instance.save()
+        return instance
